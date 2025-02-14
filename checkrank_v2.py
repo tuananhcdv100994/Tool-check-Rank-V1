@@ -3,24 +3,24 @@ import requests
 import random
 from urllib.parse import quote
 
-def google_search(keyword, target_url, api_key):
+def google_search(api_key, search_engine_id, keyword, target_url):
     found = False
     rank_info = None
     
-    for start in range(0, 50, 10):  # Duyệt từ trang 1 đến trang 5 (50 kết quả)
-        search_url = f"https://serpapi.com/search.json?q={quote(keyword)}&engine=google&start={start}&api_key={api_key}"
+    for start in range(1, 41, 10):  # Duyệt từ trang 1 đến trang 4 (40 kết quả)
+        search_url = f"https://www.googleapis.com/customsearch/v1?q={quote(keyword)}&key={api_key}&cx={search_engine_id}&start={start}"
         
         try:
             response = requests.get(search_url, timeout=10)
             if response.status_code != 200:
-                print(f"[ERROR] Không thể truy cập SerpAPI (Status Code: {response.status_code})")
+                print(f"[ERROR] Không thể truy cập Google Custom Search API (Status Code: {response.status_code})")
                 continue
         except requests.exceptions.RequestException as e:
-            print(f"[ERROR] Lỗi kết nối SerpAPI: {e}")
+            print(f"[ERROR] Lỗi kết nối API: {e}")
             continue
         
         data = response.json()
-        results = data.get("organic_results", [])
+        results = data.get("items", [])
         
         rank = start
         for result in results:
@@ -41,7 +41,8 @@ def google_search(keyword, target_url, api_key):
     return rank_info
 
 def main():
-    api_key = input("Nhập API Key của SerpAPI: ").strip()
+    api_key = input("Nhập API Key của Google Custom Search: ").strip()
+    search_engine_id = input("Nhập Search Engine ID: ").strip()
     keywords = input("Nhập danh sách từ khóa (cách nhau bằng dấu phẩy): ").split(",")
     target_url = input("Nhập URL mục tiêu: ").strip()
     
@@ -50,10 +51,10 @@ def main():
     for keyword in keywords:
         keyword = keyword.strip()
         print(f"\n[INFO] Đang tìm kiếm từ khóa: {keyword}")
-        rank_info = google_search(keyword, target_url, api_key)
+        rank_info = google_search(api_key, search_engine_id, keyword, target_url)
         all_ranks.append(rank_info)
         print("[INFO] Chờ 6 giây trước lần tìm kiếm tiếp theo...")
-        time.sleep(6)  # Delay 1 phút
+        time.sleep(6)
     
     print("\nChọn hành động sau khi kiểm tra xếp hạng:")
     print("1: Xuất kết quả xếp hạng ra file txt.")
